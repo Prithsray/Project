@@ -103,8 +103,8 @@ model = BertModel.from_pretrained("bert-base-uncased")
 
 # Function to get BERT embeddings for text
 def get_bert_embeddings(text):
-    input_ids = tokenizer.encode(text, add_special_tokens=True, truncation=True, max_length=512).toList()
-    input_ids = torch.tensor(input_ids).unsqueeze(0).toList()
+    input_ids = tokenizer.encode(text, add_special_tokens=True, truncation=True, max_length=512)
+    input_ids = torch.tensor(input_ids).unsqueeze(0)
     with torch.no_grad():
         outputs = model(input_ids)
     embeddings = outputs.last_hidden_state.mean(dim=1)
