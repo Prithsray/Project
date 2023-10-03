@@ -154,7 +154,7 @@ def recommend_profiles():
         return render_template('recommendations.html', profile_description=profile_description, recommended_profiles=recommended_profiles)
 
 
-model2 = tf.keras.models.load_model('sentiment_model.h5')
+model2 = tf.keras.models.load_model('D:\COLLEGEMATERIALS\Project Me\Project\text_sentiment.h5')
 
 # Create and fit the Keras Tokenizer
 tokenizer = tf.keras.preprocessing.text.Tokenizer()
@@ -171,7 +171,7 @@ def analyze_text():
         padded_sequence = tf.keras.preprocessing.sequence.pad_sequences(text_sequence, maxlen=your_max_sequence_length)
 
         # Perform sentiment analysis
-        prediction = model.predict(padded_sequence)
+        prediction = model2.predict(padded_sequence)
         sentiment = "Positive" if prediction > 0.5 else "Negative"
 
         return render_template('sentiment_analyse.html', sentiment=sentiment, input_text=text)
