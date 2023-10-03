@@ -12,16 +12,13 @@ import tensorflow as tf
 import numpy as np
 import pickle
 from flask import Flask, render_template, request
-
+import torch
+from transformers import BertTokenizer, BertForSequenceClassification
+from flask import Flask, render_template, request
 app = Flask(__name__)
 
-# Load the trained model
-model1 = keras.models.load_model('D:\COLLEGEMATERIALS\Project Me\Project\VGG16_MRI_classification.h5')
 
-# Create an ImageDataGenerator for preprocessing
-datagen = ImageDataGenerator(rescale=1./255)  # Normalize pixel values to [0, 1]
-
-# Define a route for image classification
+#pages route
 
 @app.route('/')
 def index():
@@ -40,6 +37,18 @@ def Profile():
 def Sentiment():
     return render_template("sentiment_analyse.html")
 
+
+
+
+
+
+
+# FOR IMAGE CLASSIFICATION
+# Load the trained model
+model1 = keras.models.load_model('D:\COLLEGEMATERIALS\Project Me\Project\VGG16_MRI_classification.h5')
+
+# Create an ImageDataGenerator for preprocessing
+datagen = ImageDataGenerator(rescale=1./255)  # Normalize pixel values to [0, 1]
 
 @app.route('/classify', methods=['POST'])
 def classify_image():
@@ -78,6 +87,13 @@ def classify_image():
         return jsonify({'error': str(e)})
 
 
+
+
+
+
+
+
+#FOR RECOMMENDATION SYSTEM
 
 # Database configuration
 db = mysql.connector.connect(
@@ -154,28 +170,38 @@ def recommend_profiles():
         return render_template('recommendations.html', profile_description=profile_description, recommended_profiles=recommended_profiles)
 
 
-model2 = tf.keras.models.load_model('D:\COLLEGEMATERIALS\Project Me\Project\text_sentiment.h5')
-
-# Create and fit the Keras Tokenizer
-tokenizer = tf.keras.preprocessing.text.Tokenizer()
 
 
+
+
+
+
+
+#TEXT SENTIMENT ANALYSER
+model2 = BertForSequenceClassification.from_pretrained('bert-base-uncased')
+tokenizer2 = BertTokenizer.from_pretrained('bert-base-uncased')
 
 @app.route('/analyze', methods=['POST'])
 def analyze_text():
     if request.method == 'POST':
         text = request.form['text']
 
-        # Tokenize and preprocess the input text using the loaded tokenizer
-        text_sequence = tokenizer.texts_to_sequences([text])
-        padded_sequence = tf.keras.preprocessing.sequence.pad_sequences(text_sequence, maxlen=your_max_sequence_length)
+        # Tokenize and preprocess the input text using BERT tokenizer
+        inputs = tokenizer2(text, padding=True, truncation=True, return_tensors="pt", max_length=100)
+        
+        # Perform sentiment analysis with BERT using the model directly
+        outputs = model2(**inputs)
 
-        # Perform sentiment analysis
-        prediction = model2.predict(padded_sequence)
-        sentiment = "Positive" if prediction > 0.5 else "Negative"
+        logits = outputs.logits
+        probabilities = torch.nn.functional.softmax(logits, dim=1)
+        label = torch.argmax(probabilities, dim=1).item()
+
+        # Map the label to sentiment
+       # labels = ['Negative', 'Positive']
+        sentiment = "Positive" if label >0.5 else "Negative"
+
 
         return render_template('sentiment_analyse.html', sentiment=sentiment, input_text=text)
-
 
 
 if __name__ == '__main__':
