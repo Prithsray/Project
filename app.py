@@ -23,6 +23,16 @@ datagen = ImageDataGenerator(rescale=1./255)  # Normalize pixel values to [0, 1]
 def index():
     return render_template("index.html")
 
+@app.route('/Image_Classification')
+def Image():
+    return render_template("Image_Classification.html")
+
+
+@app.route('/Profile_Recomedation')
+def Image():
+    return render_template("profile_recommender.html")
+
+
 @app.route('/classify', methods=['POST'])
 def classify_image():
     try:
