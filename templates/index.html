@@ -7,36 +7,12 @@
     <title>Image Classification</title>
 </head>
 <body>
-    <h1>Image Classification</h1>
-    <form action="/classify" method="POST" enctype="multipart/form-data">
-        <input type="file" name="image" accept="image/*" required>
-        <button type="submit">Classify</button>
-    </form>
+   
+<h1>What Service do you want ? </h1><br>
 
-   <h1>{{result}}</h1> 
+<a href="Image_Classification.html">Image Classification</a>
+<a href="profile_recommender.html">Profile Recommendation</a>
 
-   <h1>Profile Recommendation System</h1>
-    
-    <h2>Upload a Profile Description</h2>
-    <form method="POST" action="/upload">
-        <label for="profile_name">Name:</label>
-        <input type="text" name="profile_name" required><br><br>
-        <label for="lawyer_type">Lawyer Type:</label>
-        <input type="text" name="lawyer_type" required><br><br>
-        
-        <label for="description">Description:</label>
-        <textarea name="description" rows="4" cols="50" required></textarea><br><br>
-        
-        <input type="submit" value="Upload Profile">
-    </form>
-
-    <h2>Get Profile Recommendations</h2>
-    <form method="POST" action="/recommend">
-        <label for="profile_description">Enter Profile Description:</label>
-        <textarea name="profile_description" rows="4" cols="50" required></textarea><br><br>
-        
-        <input type="submit" value="Get Recommendations">
-    </form>
     
 </body>
 </html>
