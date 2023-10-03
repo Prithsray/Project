@@ -29,7 +29,7 @@ def Image():
 
 
 @app.route('/Profile_Recomedation')
-def Image():
+def Profile():
     return render_template("profile_recommender.html")
 
 
