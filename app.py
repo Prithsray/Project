@@ -8,6 +8,10 @@ import mysql.connector
 import pandas as pd
 import torch
 from transformers import BertTokenizer, BertModel
+import tensorflow as tf
+import numpy as np
+import pickle
+from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
@@ -31,6 +35,10 @@ def Image_classify():
 @app.route('/Profile_Recomedation')
 def Profile():
     return render_template("profile_recommender.html")
+
+@app.route('/Sentiment')
+def Sentiment():
+    return render_template("sentiment_analyse.html")
 
 
 @app.route('/classify', methods=['POST'])
@@ -68,6 +76,7 @@ def classify_image():
 
     except Exception as e:
         return jsonify({'error': str(e)})
+
 
 
 # Database configuration
@@ -143,6 +152,30 @@ def recommend_profiles():
         profile_description = request.form['profile_description']
         recommended_profiles = get_profile_recommendations(profile_description)
         return render_template('recommendations.html', profile_description=profile_description, recommended_profiles=recommended_profiles)
+
+
+model2 = tf.keras.models.load_model('sentiment_model.h5')
+
+# Create and fit the Keras Tokenizer
+tokenizer = tf.keras.preprocessing.text.Tokenizer()
+
+
+
+@app.route('/analyze', methods=['POST'])
+def analyze_text():
+    if request.method == 'POST':
+        text = request.form['text']
+
+        # Tokenize and preprocess the input text using the loaded tokenizer
+        text_sequence = tokenizer.texts_to_sequences([text])
+        padded_sequence = tf.keras.preprocessing.sequence.pad_sequences(text_sequence, maxlen=your_max_sequence_length)
+
+        # Perform sentiment analysis
+        prediction = model.predict(padded_sequence)
+        sentiment = "Positive" if prediction > 0.5 else "Negative"
+
+        return render_template('sentiment_analyse.html', sentiment=sentiment, input_text=text)
+
 
 
 if __name__ == '__main__':
