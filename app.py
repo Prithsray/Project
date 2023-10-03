@@ -12,7 +12,7 @@ from transformers import BertTokenizer, BertModel
 app = Flask(__name__)
 
 # Load the trained model
-model = keras.models.load_model('D:\COLLEGEMATERIALS\Project Me\spine_fracture_detection\VGG16_MRI_classification.h5')
+model = keras.models.load_model('D:\COLLEGEMATERIALS\Project Me\Project\VGG16_MRI_classification.h5')
 
 # Create an ImageDataGenerator for preprocessing
 datagen = ImageDataGenerator(rescale=1./255)  # Normalize pixel values to [0, 1]
@@ -24,7 +24,7 @@ def index():
     return render_template("index.html")
 
 @app.route('/Image_Classification')
-def Image():
+def Image_classify():
     return render_template("Image_Classification.html")
 
 
@@ -98,14 +98,14 @@ job_profiles = pd.DataFrame(job_profiles_data, columns=['id', 'title', 'lawyer_t
 
 # Load pre-trained BERT model and tokenizer
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-model = BertModel.from_pretrained("bert-base-uncased")
+model1 = BertModel.from_pretrained("bert-base-uncased")
 
 # Function to get BERT embeddings for text
 def get_bert_embeddings(text):
     input_ids = tokenizer.encode(text, add_special_tokens=True, truncation=True, max_length=512)
     input_ids = torch.tensor(input_ids).unsqueeze(0)
     with torch.no_grad():
-        outputs = model(input_ids)
+        outputs = model1(input_ids)
     embeddings = outputs.last_hidden_state.mean(dim=1)
     return embeddings
 
