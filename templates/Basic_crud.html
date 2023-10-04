@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CRUD Operations</title>
+</head>
+<body>
+    <h1>CRUD Operations</h1>
+
+    <h2>Record List</h2>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Actions</th>
+        </tr>
+        {% for record in records %}
+        <tr>
+            <td>{{ record[0] }}</td>
+            <td>{{ record[1] }}</td>
+            <td>{{ record[2] }}</td>
+            <td>
+                <a href="{{ url_for('edit', id=record[0]) }}">Edit</a>
+                <a href="{{ url_for('delete', id=record[0]) }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Add Record</h2>
+    <form method="POST" action="/add">
+        <label for="name">Name:</label>
+        <input type="text" name="name" required><br>
+        <label for="email">Email:</label>
+        <input type="email" name="email" required><br>
+        <input type="submit" value="Add">
+    </form>
+
+    <h2>Download Records</h2>
+    <a href="{{ url_for('download_excel') }}" class="btn btn-primary">Download Excel</a>
+    
+
+</body>
+</html>

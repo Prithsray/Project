@@ -15,6 +15,10 @@ from flask import Flask, render_template, request
 import torch
 from transformers import BertTokenizer, BertForSequenceClassification
 from flask import Flask, render_template, request
+from flask_mysqldb import MySQL
+from flask import Flask, render_template, request, redirect, url_for, Response
+
+
 app = Flask(__name__)
 
 
@@ -202,6 +206,109 @@ def analyze_text():
 
 
         return render_template('sentiment_analyse.html', sentiment=sentiment, input_text=text)
+
+
+
+
+
+
+
+
+
+#CRUD
+
+
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_DB'] = 'crud'
+mysql = MySQL(app)
+
+
+@app.route('/crud')
+def index_00():
+    # Retrieve records from the database
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT * FROM your_table')
+    data = cur.fetchall()
+    cur.close()
+    return render_template('Basic_crud.html', records=data)
+
+@app.route('/add', methods=['POST'])
+def add():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        cur = mysql.connection.cursor()
+        cur.execute('INSERT INTO your_table (name, email) VALUES (%s, %s)', (name, email))
+        mysql.connection.commit()
+        cur.close()
+        return redirect('/crud')
+
+@app.route('/edit/<int:id>', methods=['GET', 'POST'])
+def edit(id):
+    cur = mysql.connection.cursor()
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        cur.execute('UPDATE your_table SET name = %s, email = %s WHERE id = %s', (name, email, id))
+        mysql.connection.commit()
+        cur.close()
+        return redirect('/crud')
+    else:
+        cur.execute('SELECT * FROM your_table WHERE id = %s', (id,))
+        data = cur.fetchone()
+        cur.close()
+        return render_template('edit.html', record=data)
+
+@app.route('/delete/<int:id>', methods=['GET', 'POST'])
+def delete(id):
+    cur = mysql.connection.cursor()
+    cur.execute('DELETE FROM your_table WHERE id = %s', (id,))
+    mysql.connection.commit()
+    cur.close()
+    return redirect('/crud')
+
+@app.route('/download_excel')
+def download_excel():
+    # Retrieve records from the database
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT * FROM your_table')
+    data = cur.fetchall()
+    cur.close()
+
+    # Create a pandas DataFrame from the data
+    df = pd.DataFrame(data, columns=['ID', 'Name', 'Email'])
+
+    # Create an Excel writer object
+    writer = pd.ExcelWriter('records.xlsx', engine='xlsxwriter')
+    df.to_excel(writer, sheet_name='Sheet1', index=False)
+
+    # Save the Excel file
+    writer.save()
+
+    # Serve the Excel file as a download
+    with open('records.xlsx', 'rb') as excel_file:
+        excel_data = excel_file.read()
+
+    response = Response(excel_data, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response.headers["Content-Disposition"] = "attachment; filename=records.xlsx"
+
+    return response
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':
