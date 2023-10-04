@@ -17,6 +17,14 @@ from transformers import BertTokenizer, BertForSequenceClassification
 from flask import Flask, render_template, request
 from flask_mysqldb import MySQL
 from flask import Flask, render_template, request, redirect, url_for, Response
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle,Image
+from flask import Flask, render_template, request, redirect, url_for, Response
+import os
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, PageTemplate, Frame, Paragraph
+from reportlab.lib.units import inch
+from reportlab.lib.styles import getSampleStyleSheet
 
 
 app = Flask(__name__)
@@ -217,7 +225,6 @@ def analyze_text():
 
 #CRUD
 
-
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
@@ -280,35 +287,73 @@ def download_excel():
     # Create a pandas DataFrame from the data
     df = pd.DataFrame(data, columns=['ID', 'Name', 'Email'])
 
-    # Create an Excel writer object
-    writer = pd.ExcelWriter('records.xlsx', engine='xlsxwriter')
-    df.to_excel(writer, sheet_name='Sheet1', index=False)
+    # Create an in-memory Excel file
+    excel_buffer = io.BytesIO()
+    with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
+        df.to_excel(writer, sheet_name='Sheet1', index=False)
 
-    # Save the Excel file
-    writer.save()
+    excel_buffer.seek(0)
 
     # Serve the Excel file as a download
-    with open('records.xlsx', 'rb') as excel_file:
-        excel_data = excel_file.read()
-
-    response = Response(excel_data, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response = Response(excel_buffer.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response.headers["Content-Disposition"] = "attachment; filename=records.xlsx"
 
     return response
 
 
+@app.route('/print_pdf')
+def print_pdf():
+    # Retrieve records from the database
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT * FROM your_table')
+    data = cur.fetchall()
+    cur.close()
 
+    # Create a list to store the data for the PDF table
+    pdf_data = [['ID', 'Name', 'Email']]  # Header row
+    pdf_data.extend(data)  # Data rows
 
+    # Create a PDF file
+    pdf_buffer = io.BytesIO()
+    doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
+    elements = []
 
+#create logo
+   
+    logo_path = os.path.join(app.root_path, 'static/logo.png')
+    logo = Image(logo_path, width=100, height=100)
+    elements.append(logo)
 
+ # Add a heading line
+    styles = getSampleStyleSheet()
+    heading_text = "Records"  # Replace with your desired heading text
+    heading = Paragraph(heading_text, styles['Title'])
+    elements.append(heading)
 
+    # Create a PDF table
+    pdf_table = Table(pdf_data)
+    pdf_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), (0.8, 0.8, 0.8)),  # Header row background color
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  # left-align all cells
+        ('TEXTCOLOR', (0, 0), (-1, 0), (1, 1, 1)),  # Header text color
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # Header font
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),  # Header padding
+        ('BACKGROUND', (0, 1), (-1, -1), (0.95, 0.95, 0.95)),  # Data row background color
+        ('GRID', (0, 0), (-1, -1), 1, (0, 0, 0)),  # Table grid
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),  # Data font
+        ('FONT_SIZE', (0, 1), (-1, -1), 12),  # Data font size
+    ]))
 
+    elements.append(pdf_table)
+    doc.build(elements)
 
+    pdf_buffer.seek(0)
 
+    # Serve the PDF file as a download
+    response = Response(pdf_buffer.read(), content_type='application/pdf')
+    response.headers["Content-Disposition"] = "inline; filename=records.pdf"
 
-
-
-
+    return response
 
 
 if __name__ == '__main__':
